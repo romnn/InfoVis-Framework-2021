@@ -1,0 +1,14 @@
+html, 
+body {
+    height: 100%;
+}
+
+main {
+  padding: 20px;
+}
+
+svg {
+  display: block;
+  position: relative;
+  margin: 0 auto;
+}

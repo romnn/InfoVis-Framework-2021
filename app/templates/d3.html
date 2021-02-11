@@ -1,65 +1,86 @@
-{% extends "base.html" %}
-{% block title %}D3 Visualization{% endblock %}
-{% block body %}
+{% extends "base.html" %} {% block title %}D3 Visualization{% endblock %} {%
+block body %}
 <script type="text/javascript">
-	d3.selectAll(".nav-item").classed("active", false);
-	d3.select("#nav-link-d3").classed("active", true);
+  d3.selectAll(".nav-item").classed("active", false);
+  d3.select("#nav-link-d3").classed("active", true);
 </script>
 
-<link href="../static/css/tooltip.css" rel="stylesheet" type="text/css">
+<link href="../static/css/tooltip.css" rel="stylesheet" type="text/css" />
 <script type="text/javascript" src="../static/js/tooltip.js"></script>
 
-<H2 class="mt-3">Amsterdam Rental Information</H2>
+<h2 class="mt-3">Amsterdam Rental Information</h2>
 
-<!-- <form action="/d3"> -->
 <select name="area_name" onchange="updateArea(this)">
-	{% for area_name in area_names %}
-	{% if area_name == selected_area_name %}
-	<option selected value="{{ area_name }}">{{ area_name }}</option> 
-	{% else %} 
-	<option value="{{ area_name }}">{{ area_name }}</option> 
-	{% endif %}
-	{% endfor %}
+  {% for area_name in area_names %} {% if area_name == selected_area_name %}
+  <option selected value="{{ area_name }}">{{ area_name }}</option>
+  {% else %}
+  <option value="{{ area_name }}">{{ area_name }}</option>
+  {% endif %} {% endfor %}
 </select>
-	<!-- <input type="submit"> -->
-<!-- </form> -->
-<div class="mt-3" id="barchart">
-</div>
-<link rel="stylesheet" type="text/css" href="../static/css/barchart.css">
-<script type="text/javascript" src="../static/js/barchart.js"></script>
+
+<select name="attr_name" onchange="updateAttr(this)">
+  {% for attr_name in attr_names %} {% if attr_name == selected_attr_name %}
+  <option selected value="{{ attr_name }}">{{ attr_name }}</option>
+  {% else %}
+  <option value="{{ attr_name }}">{{ attr_name }}</option>
+  {% endif %} {% endfor %}
+</select>
+
+<div class="mt-3" id="piechart"></div>
+<link rel="stylesheet" type="text/css" href="../static/css/piechart.css" />
+<script type="text/javascript" src="../static/js/piechart.js"></script>
 <script type="text/javascript">
-	///////////// GLOBAL VARS /////////////		
-	var plot_data;
-	var meta_data = {{ meta_data |safe }};
-	var x_variables = {{ x_variables |safe}};
-	var selected_area = {{ selected_area_name |tojson }};
+  ///////////// GLOBAL VARS /////////////
+  var plot_data;
+  var meta_data = {{ meta_data |safe }};
+  var x_variables = {{ x_variables |safe}};
+  var selected_area = {{ selected_area_name |tojson }};
+  var selected_attr = {{ selected_attr_name |tojson }};
 
-	var width = 1000;
-	var height = 700;
-	var MOUSEOVER = false;
+  var width = 1000;
+  var height = 500;
+  var MOUSEOVER = false;
 
-	var chart_height = 400,
-		chart_width = 700;
+  var chart_height = height, chart_width = width / 2; radius = Math.min(chart_width, chart_height) / 2;
 
-	var svgContainer = d3.select("#barchart").append("svg")
-					.attr("height", height)
-					.attr("width", width);
+  var svg = d3.select("#piechart")
+          .append("svg")
+            .attr("height", height)
+            .attr("width", width)
+          .append("g")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+            
 
-	var x = d3.scaleLinear().rangeRound([0, chart_width]),
-		y = d3.scaleBand().rangeRound([chart_height, 0]).padding(0.1);
-		
-	x.domain([0, 100]);
-	y.domain(x_variables);
+  svg.append("g")
+  	.attr("class", "slices");
+  svg.append("g")
+    .attr("class", "percent");
+  svg.append("g")
+  	.attr("class", "labels");
+  svg.append("g")
+  	.attr("class", "lines");
 
-	// Code for vertical bar chart
-	// var x = d3.scaleBand().rangeRound([0, chart_width]).padding(0.1),
-	//     y = d3.scaleLinear().rangeRound([chart_height, 0]);
+  const pie = d3.pie()
+    .sort(function(d) {
+      return -d.value;
+    })
+    .value(function(d) {
+      return d.value;
+    });
 
-	// Code for vertical bar chart
-	// x.domain(x_variables);
-	// y.domain([0, 100]);
+  var arc = d3.arc()
+    .outerRadius(radius * 0.8)
+    .innerRadius(radius * 0.4);
 
-	updatePlot();
+  var outerArc = d3.arc()
+    .innerRadius(radius * 0.9)
+    .outerRadius(radius * 0.9);
+
+  var color = d3.scaleOrdinal()
+    .domain(["Lorem ipsum", "dolor sit", "amet", "consectetur", "adipisicing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt"])
+    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+  updatePlot();
 </script>
 
 {% endblock %}
