@@ -14,7 +14,23 @@ function updateArea(selectObject) {
 
 function updateAttr(selectObject) {
   selected_attr = selectObject.value;
-  updatePlot();
+  end_plot_data =
+      plot_data.map(function(item) { return {key : item.key, value : 0}; });
+  update(end_plot_data);
+  var fetch_url =
+      "/d3_plot_data?area_name=" + selected_area + "&type=" + selected_attr;
+  fetch(fetch_url)
+      .then(function(response) { return response.json(); })
+      .then((data) => {
+        setTimeout(function() {
+          plot_data = d3.map(data[0]).entries();
+          console.log(plot_data);
+          start_plot_data = plot_data.map(function(
+              item) { return {key : item.key, value : 0}; });
+          update(start_plot_data);
+          setTimeout(function() { update(plot_data); }, duration / 2);
+        }, duration);
+      });
 };
 
 function updatePlot() {
@@ -23,9 +39,9 @@ function updatePlot() {
   fetch(fetch_url)
       .then(function(response) { return response.json(); })
       .then((data) => {
-        data = d3.map(data[0]).entries();
-        console.log(data);
-        update(data);
+        plot_data = d3.map(data[0]).entries();
+        console.log(plot_data);
+        update(plot_data);
       });
 }
 
@@ -37,7 +53,6 @@ function arcTween(dd) {
 }
 
 function update(data) {
-  var duration = 700;
   var key = function(d) { return get_info_on_var(d.data.key)[0]; };
 
   /* ------- PIE SLICES -------*/
@@ -49,8 +64,8 @@ function update(data) {
       .insert("path")
       .style("fill", function(d) { return color(key(d)); })
       .attr("d", arc)
-      .attr("stroke", "black")
-      .attr("stroke-width", "2px")
+      // .attr("stroke", "black")
+      // .attr("stroke-width", "2px")
       .attr("class", "slice")
       .each(function(d) { this._current = d; }); // store the initial angles
 
@@ -69,7 +84,7 @@ function update(data) {
   percent.enter()
       .append("text")
       .attr("dy", ".35em")
-      .text(function(d) { return d.data.value.toString() + "%"})
+      .text(function(d) { return d.data.value.toString() + "%" })
       .attr("transform",
             function(d) {
               var pos = arc.centroid(d);
@@ -81,7 +96,7 @@ function update(data) {
 
   percent.transition()
       .duration(duration)
-      .text(function(d) { return d.data.value.toString() + "%"})
+      .text(function(d) { return d.data.value.toString() + "%" })
       .attrTween("transform",
                  function(d) {
                    this._current = this._current || d;
